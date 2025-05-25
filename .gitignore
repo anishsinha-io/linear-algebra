@@ -3,4 +3,8 @@
 scratch/
 build/
 target/
+build-web/
+web/resources/*
+!web/resources/.gitkeep
 
+.DS_Store

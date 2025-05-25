@@ -14,6 +14,7 @@ static inline bool shift_pressed() {
 }
 
 int main(void) {
+  SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE);
   SetTargetFPS(60);
 
@@ -29,7 +30,8 @@ int main(void) {
   circle_path c = {3, g.origin};
 
   while (!WindowShouldClose()) {
-    float dt = GetFrameTime();
+    g.origin.x = (float)GetScreenWidth() / 2;
+    g.origin.y = (float)GetScreenHeight() / 2;
 
     if (IsKeyDown(KEY_UP)) {
       if (shift_pressed()) {
