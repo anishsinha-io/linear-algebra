@@ -17,7 +17,7 @@ jobs:
 
       - name: Build Web target in Docker
         run: |
-          docker build -t web-build -f Dockerfile .
+          docker build -t web-build -f Dockerfile.ci .
 
       - name: Copy build output from container
         run: |
