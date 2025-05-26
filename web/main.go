@@ -19,7 +19,7 @@ func main() {
 	http.Handle("/", http.FileServer(http.FS(subFS)))
 
 	http.HandleFunc("/widget", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "resources/linear_algebra.html")
+		http.ServeFile(w, r, "resources/index.html")
 	})
 
 	log.Println("Serving on http://localhost:8080")
