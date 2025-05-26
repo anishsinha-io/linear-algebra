@@ -1,6 +1,8 @@
 #include "grid.h"
 
-#include "raylib.h"
+#include <rlgl.h>
+
+#include "quad.h"
 
 void draw_line(const line l) {
   DrawLineEx(l.start, l.end, l.thickness, l.color);
@@ -17,6 +19,8 @@ matrix2 rotation_matrix(double theta) {
   return (matrix2){.i = {cos(theta), -sin(theta)},
                    .j = {sin(theta), cos(theta)}};
 }
+
+static inline float det2(matrix2 m) { return m.i.x * m.j.y - m.j.x * m.i.y; }
 
 static inline Vector2 translate_x(Vector2 v, double x) {
   return (Vector2){v.x + x, v.y};
@@ -43,6 +47,35 @@ static void draw_arrowhead(float x, float y, float scale, double angle_rad,
   Vector2 p3 = translate_x(translate_y(transform(R, arrow_p3), y), x);
 
   DrawTriangle(p1, p2, p3, color);
+}
+
+static void draw_det2(const grid* const g) {
+  int     scale       = 40;
+  float   determinant = det2(g->basis);
+  Vector2 i_hat = g->basis.i, j_hat = g->basis.j;
+  i_hat.y *= -1;
+  j_hat.y *= -1;
+  QuadCoords coords = {0};
+
+  coords.bottomLeft  = translate_xy((Vector2){0, 0}, g->origin.x, g->origin.y);
+  coords.bottomRight = translate_xy((Vector2){i_hat.x * scale, i_hat.y * scale},
+                                    g->origin.x, g->origin.y);
+  coords.topLeft     = translate_xy((Vector2){j_hat.x * scale, j_hat.y * scale},
+                                    g->origin.x, g->origin.y);
+  coords.topRight    = translate_xy((Vector2){i_hat.x * scale + j_hat.x * scale,
+                                              j_hat.y * scale + i_hat.y * scale},
+                                    g->origin.x, g->origin.y);
+  if (determinant < 0) {
+    Vector2 tmp     = coords.topLeft;
+    coords.topLeft  = coords.topRight;
+    coords.topRight = tmp;
+
+    tmp                = coords.bottomLeft;
+    coords.bottomLeft  = coords.bottomRight;
+    coords.bottomRight = tmp;
+  }
+
+  DrawQuad(coords, determinant > 0 ? BLUE : ORANGE);
 }
 
 void draw_grid(const grid* const g) {
@@ -101,6 +134,8 @@ void draw_grid(const grid* const g) {
         RAYWHITE, g->line_thickness};
     draw_line(l2);
   }
+
+  draw_det2(g);
 
   draw_line(i);
   draw_line(j);

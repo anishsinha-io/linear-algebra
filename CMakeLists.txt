@@ -38,6 +38,9 @@ set(
 
     grid.h
     grid.c
+
+    quad.h
+    quad.c
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
