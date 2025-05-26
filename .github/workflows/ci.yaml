@@ -34,4 +34,4 @@ jobs:
         uses: google-github-actions/upload-cloud-storage@v2
         with:
           path: linear_algebra.js
-          destination: gs://anishsinha.io/linear_algebra.js
+          destination: anishsinha.io/linear_algebra.js
