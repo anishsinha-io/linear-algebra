@@ -1,26 +1,17 @@
 #include "grid.h"
 
+#include <math.h>
 #include <rlgl.h>
+#include <stdio.h>
+#include <string.h>
 
+#include "matrix2.h"
 #include "quad.h"
+#include "raylib.h"
 
 void draw_line(const line l) {
   DrawLineEx(l.start, l.end, l.thickness, l.color);
 }
-
-Vector2 transform(matrix2 T, Vector2 v) {
-  double x = (v.x * T.i.x) + (v.y * T.j.x);
-  double y = (v.x * T.i.y) + (v.y * T.j.y);
-
-  return (Vector2){.x = x, .y = y};
-}
-
-matrix2 rotation_matrix(double theta) {
-  return (matrix2){.i = {cos(theta), -sin(theta)},
-                   .j = {sin(theta), cos(theta)}};
-}
-
-static inline float det2(matrix2 m) { return m.i.x * m.j.y - m.j.x * m.i.y; }
 
 static inline Vector2 translate_x(Vector2 v, double x) {
   return (Vector2){v.x + x, v.y};
@@ -51,7 +42,7 @@ static void draw_arrowhead(float x, float y, float scale, double angle_rad,
 
 static void draw_det2(const grid* const g) {
   int     scale       = 40;
-  float   determinant = det2(g->basis);
+  float   determinant = matrix2det(g->basis);
   Vector2 i_hat = g->basis.i, j_hat = g->basis.j;
   i_hat.y *= -1;
   j_hat.y *= -1;
@@ -76,6 +67,14 @@ static void draw_det2(const grid* const g) {
   }
 
   DrawQuad(coords, determinant > 0 ? BLUE : ORANGE);
+  char buf[100];
+
+  sprintf(buf, "det: %0.3f", determinant);
+  DrawRectangle((coords.topLeft.x + coords.bottomRight.x) / 2 - 5,
+                (coords.topLeft.y + coords.bottomRight.y) / 2 - 5, 70, 18,
+                RAYWHITE);
+  DrawText(buf, (coords.topLeft.x + coords.bottomRight.x) / 2,
+           (coords.topLeft.y + coords.bottomRight.y) / 2, 10, BLACK);
 }
 
 void draw_grid(const grid* const g) {
@@ -136,9 +135,60 @@ void draw_grid(const grid* const g) {
   }
 
   draw_det2(g);
-
   draw_line(i);
   draw_line(j);
+
+  eigen e;
+  int   status = matrix2eigen(g->basis, &e);
+  char  buf[100];
+  if (status != MATRIX2_ZERO_DETERMINANT) {
+    line ev1 = {
+        .start     = translate_xy((Vector2){0, 0}, g->origin.x, g->origin.y),
+        .end       = {g->origin.x + scale * e.eigenvectors[0].x,
+                      g->origin.y + scale * e.eigenvectors[0].y * -1},
+        .color     = GREEN,
+        .thickness = 2,
+    };
+
+    double ev1_angle = atan(e.eigenvectors[0].y / e.eigenvectors[0].x);
+
+    if (e.eigenvectors[0].x < 0) {
+      ev1_angle += PI;
+    }
+    draw_arrowhead(ev1.end.x, ev1.end.y, 1, ev1_angle, GREEN);
+    // if(!e.eigenvectors[0].x)
+    if (!isnan(e.eigenvectors[0].x) && !isnan(e.eigenvectors[0].y)) {
+      sprintf(buf, "(%0.2f, %0.2f)", e.eigenvectors[0].x, e.eigenvectors[0].y);
+      DrawRectangle(ev1.end.x - 5, ev1.end.y - 25, 70, 18, RAYWHITE);
+      DrawText(buf, ev1.end.x, ev1.end.y - 20, 10, BLACK);
+    }
+
+    draw_line(ev1);
+
+    line ev2 = {
+        .start     = translate_xy((Vector2){0, 0}, g->origin.x, g->origin.y),
+        .end       = {g->origin.x + scale * e.eigenvectors[1].x,
+                      g->origin.y + scale * e.eigenvectors[1].y * -1},
+        .color     = GREEN,
+        .thickness = 2,
+    };
+
+    double ev2_angle = atan(e.eigenvectors[1].y / e.eigenvectors[1].x);
+
+    if (e.eigenvectors[1].x < 0) {
+      ev2_angle += PI;
+    }
+    draw_arrowhead(ev2.end.x, ev2.end.y, 1, ev2_angle, GREEN);
+
+    memset(buf, 0, 100);
+    if (!isnan(e.eigenvectors[1].x) && !isnan(e.eigenvectors[1].y)) {
+      sprintf(buf, "(%0.2f, %0.2f)", e.eigenvectors[1].x, e.eigenvectors[1].y);
+      DrawRectangle(ev2.end.x - 5, ev2.end.y - 25, 70, 18, RAYWHITE);
+      DrawText(buf, ev2.end.x, ev2.end.y - 20, 10, BLACK);
+    }
+
+    draw_line(ev2);
+  }
 
   double arrowhead1_angle = theta;
   if (i_hat.x < 0) {
@@ -172,7 +222,7 @@ void draw_grid(const grid* const g) {
 }
 
 void update_circle_path(circle_path* const c, const grid* const g) {
-  c->theta += 0.1 * 20 * 0.01745329F;
+  c->theta += c->speed * 20 * 0.01745329F;
 
   float   r   = c->radius * 40;
   float   x   = r * sin(c->theta);

@@ -16,31 +16,23 @@ add_custom_target(copy_resources ALL
 
 
 # Dependencies
-set(RAYLIB_VERSION 5.5)
-find_package(raylib ${RAYLIB_VERSION} QUIET)
-if (NOT raylib_FOUND)
-  include(FetchContent)
-  FetchContent_Declare(
-    raylib
-    DOWNLOAD_EXTRACT_TIMESTAMP OFF
-    URL https://github.com/raysan5/raylib/archive/refs/tags/${RAYLIB_VERSION}.tar.gz
-  )
-  FetchContent_GetProperties(raylib)
-  if (NOT raylib_POPULATED)
-    set(FETCHCONTENT_QUIET NO)
-    FetchContent_MakeAvailable(raylib)
-    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-  endif()
-endif()
+include(cmake/fetch_raylib.cmake)
 
 set(
     SRCS
 
-    grid.h
-    grid.c
+    include/close_icon.h
+    include/settings_icon.h
+    include/settings.h
 
-    quad.h
-    quad.c
+    include/grid.h
+    src/grid.c
+
+    include/quad.h
+    src/quad.c
+
+    include/matrix2.h
+    src/matrix2.c
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
@@ -49,7 +41,7 @@ add_executable(${PROJECT_NAME} main.c ${SRCS})
 target_link_libraries(${PROJECT_NAME} raylib)
 
 if (EMSCRIPTEN)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY -s GL_ENABLE_GET_PROC_ADDRESS=1 -s EXPORTED_RUNTIME_METHODS=['requestFullscreen'] -s SINGLE_FILE=1")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY -s GL_ENABLE_GET_PROC_ADDRESS=1 -s EXPORTED_RUNTIME_METHODS=['requestFullscreen'] -s SINGLE_FILE=1 -s ALLOW_MEMORY_GROWTH=1")
     set(CMAKE_EXECUTABLE_SUFFIX ".js")
 endif ()
 
