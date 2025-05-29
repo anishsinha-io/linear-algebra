@@ -21,9 +21,11 @@ include(cmake/fetch_raylib.cmake)
 set(
     SRCS
 
+    include/jetbrains_mono.h
     include/close_icon.h
     include/settings_icon.h
-    include/settings.h
+    include/sun.h
+    include/moon.h
 
     include/grid.h
     src/grid.c
@@ -33,6 +35,9 @@ set(
 
     include/matrix2.h
     src/matrix2.c
+
+    include/state.h
+    src/state.c
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)

@@ -34,10 +34,6 @@ int matrix2eigen(matrix2 A, eigen* const out) {
   float T = a + d;          // trace
   float D = a * d - b * c;  // determinant
 
-  if (D == 0) {
-    return MATRIX2_ZERO_DETERMINANT;
-  }
-
   float lambda1 /* first eigenvalue */  = (T - sqrtf(pow(T, 2) - 4 * D)) / 2;
   float lambda2 /* second eigenvalue */ = (T + sqrtf(pow(T, 2) - 4 * D)) / 2;
 

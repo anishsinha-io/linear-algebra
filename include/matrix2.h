@@ -2,8 +2,6 @@
 
 #include <raylib.h>
 
-#define MATRIX2_ZERO_DETERMINANT 1
-
 typedef struct {
   Vector2 i, j;
 } matrix2;

@@ -5,36 +5,82 @@
 
 #include "close_icon.h"
 #include "grid.h"
-#include "matrix2.h"
-#include "settings.h"
+#include "jetbrains_mono.h"
+#include "moon.h"
 #include "settings_icon.h"
+#include "state.h"
+#include "sun.h"
 
 const int   SCREEN_HEIGHT = 800;
 const int   SCREEN_WIDTH  = 1200;
 const char* SCREEN_TITLE  = "Linear Algebra Visualized Geometrically";
-
-static inline bool shift_pressed() {
-  return IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT);
-}
-
-bool show_settings = false;
 
 int main(void) {
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE);
   SetTargetFPS(60);
 
+  Font jetbrains_mono =
+      LoadFontFromMemory(".ttf", jb_mono_ttf, jb_mono_ttf_len, 100,
+                         (int*)codepoints, codepoints_len);
+
+  SetTextureFilter(jetbrains_mono.texture, TEXTURE_FILTER_BILINEAR);
+
   grid g = {
-      .origin         = {.x = 600, .y = 400},
+      .origin = {.x = (float)SCREEN_WIDTH / 2, .y = (float)SCREEN_HEIGHT / 2},
       .line_thickness = 1,
       .line_color     = RAYWHITE,
       .line_count     = 15,
-
-      // .basis = {.i = {2, -1}, .j = {-1, 1}},
-      .basis = {{0, 2}, {1, -3}},
+      .basis          = {{3, 2}, {1, -1}},
+      .num_paths      = 1,
+      .paths =
+          (path[]){
+              (path){
+                  .tag   = CIRCLE,
+                  .color = BLUE,
+                  .data =
+                      {
+                          .circle_path =
+                              {.center = (Vector2){(float)SCREEN_WIDTH / 2,
+                                                   (float)SCREEN_HEIGHT / 2},
+                               .radius = 3,
+                               .speed  = 0.1,
+                               .theta  = 0},
+                      },
+              },
+          },
+      .style = BUILTIN_THEMES.dark,
   };
 
-  circle_path c = {3, g.origin, 0, 0.1};
+  state s = {
+      .font          = jetbrains_mono,
+      .show_settings = false,
+      .scene =
+          {
+              .tag = SCENE_2D_INTERACTIVE_SIMUL,
+              .scene_data =
+                  {
+                      .simul_2d =
+                          {
+                              .g        = &g,
+                              .show_hud = true,
+                          },
+
+                  },
+              .scene_howto =
+                  "Keybinds (press s to close this dialog)\n\n"
+                  "- Arrow keys to move the first basis\n  vector (i)\n\n"
+                  "- Shift+Arrow keys to move the second\n  basis vector "
+                  "(j)\n\n"
+                  "- + to add more grid lines\n\n"
+                  "- - to remove grid lines\n\n"
+                  "- spacebar to reset the grid to a square\n  15x15 grid\n\n"
+                  "- s to toggle the help dialog\n\n"
+                  "- u to toggle the HUD\n\n"
+                  "- t to toggle the theme",
+          },
+      .theme = DARKMODE,
+  };
 
   Image settings_img =
       LoadImageFromMemory(".png", settings_png, settings_png_len);
@@ -52,6 +98,17 @@ int main(void) {
   Image     close_img = LoadImageFromMemory(".png", close_png, close_png_len);
   Texture2D close     = LoadTextureFromImage(close_img);
 
+  Image     sun_img = LoadImageFromMemory(".png", sun_png, sun_png_len);
+  Texture2D sun     = LoadTextureFromImage(sun_img);
+
+  Image     moon_img = LoadImageFromMemory(".png", moon_png, moon_png_len);
+  Texture2D moon     = LoadTextureFromImage(moon_img);
+
+  Rectangle theme_rec = {.x = 0.02F * SCREEN_WIDTH + 68,
+                         .y = 0.02F * SCREEN_WIDTH - 3,
+                         0.068F * SCREEN_HEIGHT,
+                         0.068F * SCREEN_HEIGHT};
+
   SetTextureFilter(close, TEXTURE_FILTER_BILINEAR);
 
   while (!WindowShouldClose()) {
@@ -62,78 +119,40 @@ int main(void) {
     if (CheckCollisionPointRec(mouse_pos, dest_rec)) {
       SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
       if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        show_settings = !show_settings;
-        c.speed       = show_settings ? 0 : 0.1;
+        toggle_show_settings(&s);
       }
     } else {
       SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
 
-    if (IsKeyPressed(KEY_S)) {
-      show_settings = !show_settings;
-
-      if (show_settings) {
-        c.speed = 0;
-      } else {
-        c.speed = 0.1;
+    if (CheckCollisionPointRec(mouse_pos, theme_rec)) {
+      SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+      if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        state_toggle_theme(&s);
       }
+    } else {
+      SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
 
-    if (IsKeyDown(KEY_UP) && !show_settings) {
-      if (shift_pressed()) {
-        g.basis.j.y += 0.05;
-      } else {
-        g.basis.i.y += 0.05;
-      }
-    }
-
-    if (IsKeyDown(KEY_DOWN) && !show_settings) {
-      if (shift_pressed()) {
-        g.basis.j.y -= 0.05;
-      } else {
-        g.basis.i.y -= 0.05;
-      }
-    }
-
-    if (IsKeyDown(KEY_LEFT) && !show_settings) {
-      if (shift_pressed()) {
-        g.basis.j.x -= 0.05;
-      } else {
-        g.basis.i.x -= 0.05;
-      }
-    }
-
-    if (IsKeyDown(KEY_RIGHT) && !show_settings) {
-      if (shift_pressed()) {
-        g.basis.j.x += 0.05;
-      } else {
-        g.basis.i.x += 0.05;
-      }
-    }
-
-    if (IsKeyPressed(KEY_SPACE) && !show_settings) {
-      g.basis.i    = (Vector2){1, 0};
-      g.basis.j    = (Vector2){0, 1};
-      g.line_count = 15;
-    }
-
-    if (shift_pressed() && IsKeyPressed(KEY_EQUAL) && !show_settings) {
-      g.line_count += 2;
-    }
-
-    if (IsKeyPressed(KEY_MINUS) && !show_settings) {
-      g.line_count -= 2;
-    }
+    state_init_scene_keybinds(&s);
 
     BeginDrawing();
-    ClearBackground(BLACK);
-    draw_grid(&g);
-    update_circle_path(&c, &g);
-    if (show_settings) {
-      draw_settings(GetScreenWidth(), GetScreenHeight());
-      DrawTexturePro(close, source_rec, dest_rec, (Vector2){}, 0, WHITE);
+    ClearBackground(s.theme == DARKMODE ? BLACK : RAYWHITE);
+
+    run_state(&s);
+    if (s.show_settings) {
+      state_show_scene_settings(&s);
+      DrawTexturePro(close, source_rec, dest_rec, (Vector2){}, 0,
+                     s.theme == DARKMODE ? RAYWHITE : BLACK);
     } else {
-      DrawTexturePro(settings, source_rec, dest_rec, (Vector2){}, 0, WHITE);
+      DrawTexturePro(settings, source_rec, dest_rec, (Vector2){}, 0,
+                     s.theme == DARKMODE ? RAYWHITE : BLACK);
+    }
+
+    if (s.theme == DARKMODE) {
+      DrawTexturePro(sun, source_rec, theme_rec, (Vector2){}, 0, WHITE);
+    } else {
+      DrawTexturePro(moon, source_rec, theme_rec, (Vector2){}, 0, WHITE);
     }
 
     EndDrawing();
