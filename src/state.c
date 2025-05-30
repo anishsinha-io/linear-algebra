@@ -25,37 +25,37 @@ Rectangle calc_settings_rec(float screen_width, float screen_height) {
   if (screen_width > 1000) {
     return (Rectangle){
         .x      = (screen_width - 550) / 2,
-        .y      = 200,
+        .y      = 50,
         .width  = 500,
-        .height = 500,
+        .height = screen_height * (3.0f / 4.0f),
     };
   } else if (screen_width > 800) {
     return (Rectangle){
         .x      = (screen_width - 550) / 2,
-        .y      = 200,
+        .y      = 50,
         .width  = 550,
-        .height = 400,
+        .height = screen_height * (3.0F / 4.0F),
     };
   } else if (screen_width > 600) {
     return (Rectangle){
         .x      = (screen_width - 450) / 2,
-        .y      = 200,
+        .y      = 50,
         .width  = 450,
-        .height = 400,
+        .height = screen_height * (3.0F / 4.0F),
     };
   } else if (screen_width > 400) {
     return (Rectangle){
         .x      = (screen_width - 350) / 2,
-        .y      = 200,
+        .y      = 50,
         .width  = 350,
-        .height = 300,
+        .height = screen_height * (3.0F / 4.0F),
     };
   } else {
     return (Rectangle){
         .x      = (screen_width - 320) / 2,
-        .y      = 200,
+        .y      = 50,
         .width  = 320,
-        .height = 300,
+        .height = screen_height * (3.0F / 4.0F),
     };
   }
 }

@@ -21,7 +21,7 @@ int main(void) {
   SetTargetFPS(60);
 
   Font jetbrains_mono =
-      LoadFontFromMemory(".ttf", jb_mono_ttf, jb_mono_ttf_len, 100,
+      LoadFontFromMemory(".ttf", jb_mono_ttf, jb_mono_ttf_len, 192,
                          (int*)codepoints, codepoints_len);
 
   SetTextureFilter(jetbrains_mono.texture, TEXTURE_FILTER_BILINEAR);
@@ -68,16 +68,28 @@ int main(void) {
 
                   },
               .scene_howto =
-                  "Keybinds (press s to close this dialog)\n\n"
-                  "- Arrow keys to move the first basis\n  vector (i)\n\n"
+                  "Keybinds (press s to close this dialog)\n"
+                  "- Arrow keys to move the first basis\n  vector (i)\n"
                   "- Shift+Arrow keys to move the second\n  basis vector "
-                  "(j)\n\n"
-                  "- + to add more grid lines\n\n"
-                  "- - to remove grid lines\n\n"
-                  "- spacebar to reset the grid to a square\n  15x15 grid\n\n"
-                  "- s to toggle the help dialog\n\n"
-                  "- u to toggle the HUD\n\n"
-                  "- t to toggle the theme",
+                  "(j)\n"
+                  "- Hover over i, j, and the eigenvectors to\n  see their "
+                  "exact values\n"
+                  "- + to add more grid lines\n"
+                  "- - to remove grid lines\n"
+                  "- spacebar to reset the grid to a square\n  15x15 grid\n"
+                  "- s to toggle the help dialog\n"
+                  "- u to toggle the HUD\n"
+                  "- t to toggle the "
+                  "theme\n----------------------------------\n"
+                  "About\n"
+                  "Oftentimes linear algebra is taught\nrather poorly"
+                  "However, when you look at it\ngeometrically,"
+                  "it is easy to intuit\nthings that textbooks just can't\n"
+                  "teach effectively."
+                  "This simulation\nillustrates linear algebra\ngeometrically."
+                  "It showcases the concepts\nof basis, determinants,\n"
+                  "eigenvalues, and eigenvectors.\n\nThis was really fun to "
+                  "make. Enjoy! \n-A",
           },
       .theme = DARKMODE,
   };
