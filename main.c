@@ -41,15 +41,20 @@ int main(void) {
                   .data =
                       {
                           .circle_path =
-                              {.center = (Vector2){(float)SCREEN_WIDTH / 2,
-                                                   (float)SCREEN_HEIGHT / 2},
-                               .radius = 3,
-                               .speed  = 0.1,
-                               .theta  = 0},
+                              {
+                                  .center = (Vector2){(float)SCREEN_WIDTH / 2,
+                                                      (float)SCREEN_HEIGHT / 2},
+                                  .radius = 3,
+                                  .speed  = 0.1,
+                                  .theta  = 0,
+                                  .stay_centered = true,
+                              },
                       },
               },
           },
-      .style = BUILTIN_THEMES.dark,
+      .style  = BUILTIN_THEMES.dark,
+      .points = (Vector2[]){(Vector2){.x = 5, .y = 5}},
+      .step   = 0.05,
   };
 
   state s = {
@@ -79,13 +84,15 @@ int main(void) {
                   "- spacebar to reset the grid to a square\n  15x15 grid\n"
                   "- s to toggle the help dialog\n"
                   "- u to toggle the HUD\n"
-                  "- t to toggle the "
-                  "theme\n----------------------------------\n"
-                  "About\n"
-                  "This simulation\nillustrates linear algebra\ngeometrically."
-                  "It showcases the concepts\nof basis, determinants,\n"
-                  "eigenvalues, and eigenvectors.\n\nThis was really fun to "
-                  "make. Enjoy! \n-A",
+                  "- t to toggle the theme\n"
+                  "- p to add a point at the mouse location\n"
+                  "- shift+p to add a point aligned to the\n  gridline closest "
+                  "to the mouse \n  location\n"
+                  "- < to decrease the step at which the\n  grid responds to"
+                  "arrow keys\n"
+                  "- > to increase the step at which the\n  grid responds to\n"
+                  "  arrow keys",
+
           },
       .theme = DARKMODE,
   };
@@ -120,9 +127,6 @@ int main(void) {
   SetTextureFilter(close, TEXTURE_FILTER_BILINEAR);
 
   while (!WindowShouldClose()) {
-    g.origin.x = (float)GetScreenWidth() / 2;
-    g.origin.y = (float)GetScreenHeight() / 2;
-
     Vector2 mouse_pos = GetMousePosition();
     if (CheckCollisionPointRec(mouse_pos, dest_rec)) {
       SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
@@ -143,6 +147,7 @@ int main(void) {
     }
 
     state_init_scene_keybinds(&s);
+    state_update(&s);
 
     BeginDrawing();
     ClearBackground(s.theme == DARKMODE ? BLACK : RAYWHITE);

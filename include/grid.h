@@ -12,6 +12,7 @@ typedef struct {
   Vector2 center;
   float   theta;
   float   speed;
+  bool    stay_centered;
 } circle_path;
 
 typedef enum { CIRCLE } path_tag;
@@ -47,6 +48,9 @@ typedef struct {
   int        num_paths;
   path*      paths;
   grid_style style;
+  int        num_points;
+  Vector2*   points;
+  float      step;
 } grid;
 
 typedef struct {

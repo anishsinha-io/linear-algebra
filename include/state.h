@@ -36,3 +36,4 @@ Rectangle calc_settings_rec(float screen_width, float screen_height);
 
 void init_simul_2d_keybinds(state* const s);
 void state_init_scene_keybinds(state* const s);
+void state_update(state* const s);

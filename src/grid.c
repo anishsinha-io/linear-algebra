@@ -127,6 +127,10 @@ static void draw_det2(const grid* const g, Font font, bool show_hud) {
 
 void update_circle_path(circle_path* const c, matrix2 basis, Color color) {
   c->theta += c->speed * 20 * 0.01745329F;
+  if (c->stay_centered) {
+    c->center.x = (float)GetScreenWidth() / 2;
+    c->center.y = (float)GetScreenHeight() / 2;
+  }
 
   float   r   = c->radius * 40;
   float   x   = r * sin(c->theta);
@@ -189,6 +193,17 @@ void run_2d_interactive_simul(grid* g, bool show_hud, Font font) {
   double y     = (len)*sin(theta);
 
   update_paths(g);
+  for (int i = 0; i < g->num_points; i++) {
+    Vector2 point = g->points[i];
+    DrawCircle(point.x, point.y, 5, RED);
+    if (CheckCollisionPointCircle(GetMousePosition(), point, 5)) {
+      char txtbuf[100];
+      sprintf(txtbuf, "(%0.2f, %0.2f)", (point.x - g->origin.x) / 40,
+              -(point.y - g->origin.y) / 40);
+      DrawTextEx(font, txtbuf, (Vector2){point.x - 20, point.y - 20}, 16, 0,
+                 g->style.text_bg_color);
+    }
+  }
 
   for (int i = -line_lower_bound; i < line_upper_bound; i++) {
     line l1 = {
