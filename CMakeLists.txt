@@ -21,6 +21,9 @@ include(cmake/fetch_raylib.cmake)
 set(
     SRCS
 
+    include/raylib_ext.h
+    src/raylib_ext.c
+
     include/jetbrains_mono.h
     include/close_icon.h
     include/settings_icon.h

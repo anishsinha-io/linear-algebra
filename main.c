@@ -1,12 +1,11 @@
 #include <raylib.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <tgmath.h>
 
 #include "close_icon.h"
 #include "grid.h"
 #include "jetbrains_mono.h"
 #include "moon.h"
+#include "raylib_ext.h"
 #include "settings_icon.h"
 #include "state.h"
 #include "sun.h"
@@ -16,15 +15,20 @@ const int   SCREEN_WIDTH  = 1200;
 const char* SCREEN_TITLE  = "Linear Algebra Visualized Geometrically";
 
 int main(void) {
-  SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+  SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
   InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE);
   SetTargetFPS(60);
+
+#ifdef PLATFORM_WEB
+  SetupMouseCallback();
+#endif
 
   Font jetbrains_mono =
       LoadFontFromMemory(".ttf", jb_mono_ttf, jb_mono_ttf_len, 192,
                          (int*)codepoints, codepoints_len);
 
   SetTextureFilter(jetbrains_mono.texture, TEXTURE_FILTER_BILINEAR);
+  Vector2 points[25] = {0};
 
   grid g = {
       .origin = {.x = (float)SCREEN_WIDTH / 2, .y = (float)SCREEN_HEIGHT / 2},
@@ -53,8 +57,10 @@ int main(void) {
               },
           },
       .style  = BUILTIN_THEMES.dark,
-      .points = (Vector2[]){(Vector2){.x = 5, .y = 5}},
+      .points = points,
       .step   = 0.05,
+      .size   = (Vector2){(float)GetCorrectedScreenWidth() / 2,
+                          (float)GetCorrectedScreenHeight() / 2},
   };
 
   state s = {
@@ -127,7 +133,7 @@ int main(void) {
   SetTextureFilter(close, TEXTURE_FILTER_BILINEAR);
 
   while (!WindowShouldClose()) {
-    Vector2 mouse_pos = GetMousePosition();
+    Vector2 mouse_pos = GetCorrectedMousePosition();
     if (CheckCollisionPointRec(mouse_pos, dest_rec)) {
       SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
       if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {

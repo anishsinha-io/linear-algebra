@@ -1,13 +1,14 @@
 #include "grid.h"
 
 #include <math.h>
+#include <raylib.h>
 #include <rlgl.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "matrix2.h"
 #include "quad.h"
-#include "raylib.h"
+#include "raylib_ext.h"
 
 void draw_line(const line l) {
   DrawLineEx(l.start, l.end, l.thickness, l.color);
@@ -42,15 +43,11 @@ const theme_pack BUILTIN_THEMES = {
         },
 };
 
-static inline Vector2 translate_x(Vector2 v, double x) {
-  return (Vector2){v.x + x, v.y};
-}
+Vector2 translate_x(Vector2 v, double x) { return (Vector2){v.x + x, v.y}; }
 
-static inline Vector2 translate_y(Vector2 v, double y) {
-  return (Vector2){v.x, v.y + y};
-}
+Vector2 translate_y(Vector2 v, double y) { return (Vector2){v.x, v.y + y}; }
 
-static inline Vector2 translate_xy(Vector2 v, double x, double y) {
+Vector2 translate_xy(Vector2 v, double x, double y) {
   return translate_y(translate_x(v, x), y);
 }
 
@@ -128,8 +125,8 @@ static void draw_det2(const grid* const g, Font font, bool show_hud) {
 void update_circle_path(circle_path* const c, matrix2 basis, Color color) {
   c->theta += c->speed * 20 * 0.01745329F;
   if (c->stay_centered) {
-    c->center.x = (float)GetScreenWidth() / 2;
-    c->center.y = (float)GetScreenHeight() / 2;
+    c->center.x = (float)GetCorrectedScreenWidth() / 2;
+    c->center.y = (float)GetCorrectedScreenHeight() / 2;
   }
 
   float   r   = c->radius * 40;
@@ -192,11 +189,14 @@ void run_2d_interactive_simul(grid* g, bool show_hud, Font font) {
   double x     = (len)*cos(theta);
   double y     = (len)*sin(theta);
 
+  float screen_height = GetCorrectedScreenHeight();
+  float screen_width  = GetCorrectedScreenHeight();
   update_paths(g);
   for (int i = 0; i < g->num_points; i++) {
     Vector2 point = g->points[i];
     DrawCircle(point.x, point.y, 5, RED);
-    if (CheckCollisionPointCircle(GetMousePosition(), point, 5)) {
+
+    if (CheckCollisionPointCircle(GetCorrectedMousePosition(), point, 8)) {
       char txtbuf[100];
       sprintf(txtbuf, "(%0.2f, %0.2f)", (point.x - g->origin.x) / 40,
               -(point.y - g->origin.y) / 40);
@@ -271,7 +271,7 @@ void run_2d_interactive_simul(grid* g, bool show_hud, Font font) {
     DrawTextEx(font, "j", (Vector2){jrec.x + 5, jrec.y + 2}, 16, 0,
                g->style.text_fg_color);
 
-    if (CheckCollisionPointRec(GetMousePosition(), irec)) {
+    if (CheckCollisionPointRec(GetCorrectedMousePosition(), irec)) {
       Rectangle info = {i.end.x, i.end.y - 5, 75, 40};
       DrawRectangleRec(info, g->style.text_bg_color);
       char buf[100];
@@ -280,7 +280,7 @@ void run_2d_interactive_simul(grid* g, bool show_hud, Font font) {
                  g->style.text_fg_color);
     }
 
-    if (CheckCollisionPointRec(GetMousePosition(), jrec)) {
+    if (CheckCollisionPointRec(GetCorrectedMousePosition(), jrec)) {
       Rectangle info = {j.end.x, j.end.y - 5, 75, 40};
       DrawRectangleRec(info, g->style.text_bg_color);
       char buf[100];
@@ -318,7 +318,7 @@ void run_2d_interactive_simul(grid* g, bool show_hud, Font font) {
       DrawTextEx(font, buf, (Vector2){ev1.end.x, ev1.end.y - 20}, 16, 0,
                  g->style.text_fg_color);
       memset(buf, 0, 100);
-      if (CheckCollisionPointRec(GetMousePosition(), rec)) {
+      if (CheckCollisionPointRec(GetCorrectedMousePosition(), rec)) {
         Rectangle info = {ev1.end.x - 5, ev1.end.y - 5, 88, 40};
 
         write_vec(e.eigenvectors[0], buf);
@@ -355,7 +355,7 @@ void run_2d_interactive_simul(grid* g, bool show_hud, Font font) {
                  g->style.text_fg_color);
 
       memset(buf, 0, 100);
-      if (CheckCollisionPointRec(GetMousePosition(), rec)) {
+      if (CheckCollisionPointRec(GetCorrectedMousePosition(), rec)) {
         Rectangle info = {ev2.end.x - 5, ev2.end.y - 5, 88, 40};
 
         write_vec(e.eigenvectors[1], buf);

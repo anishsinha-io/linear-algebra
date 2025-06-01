@@ -1,8 +1,6 @@
 #pragma once
 
 #include <raylib.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <tgmath.h>
 
 #include "matrix2.h"
@@ -51,6 +49,7 @@ typedef struct {
   int        num_points;
   Vector2*   points;
   float      step;
+  Vector2    size;
 } grid;
 
 typedef struct {
@@ -60,6 +59,9 @@ typedef struct {
 
 extern const theme_pack BUILTIN_THEMES;
 
-void draw_line(const line l);
-void run_2d_interactive_simul(grid* g, bool show_hud, Font font);
-void update_paths(const grid* const g);
+void    draw_line(const line l);
+void    run_2d_interactive_simul(grid* g, bool show_hud, Font font);
+void    update_paths(const grid* const g);
+Vector2 translate_x(Vector2 v, double x);
+Vector2 translate_y(Vector2 v, double y);
+Vector2 translate_xy(Vector2 v, double x, double y);

@@ -4,6 +4,7 @@
 
 #include "grid.h"
 #include "raylib.h"
+#include "raylib_ext.h"
 
 void run_state(state* s) {
   switch (s->scene.tag) {
@@ -72,7 +73,8 @@ Rectangle calc_settings_rec(float screen_width, float screen_height) {
 }
 
 void state_show_scene_settings(state* const s) {
-  Rectangle menu_rec = calc_settings_rec(GetScreenWidth(), GetScreenHeight());
+  Rectangle menu_rec =
+      calc_settings_rec(GetCorrectedScreenWidth(), GetCorrectedScreenHeight());
 
   DrawRectangleRec(menu_rec, WHITE);
 
@@ -144,27 +146,49 @@ void init_simul_2d_keybinds(state* const s) {
     grid* g      = s->scene.scene_data.simul_2d.g;
     float radius = 5;
 
-    Vector2 pos = GetMousePosition();
-    if (shift_pressed()) {
-      pos.x = round_to_multiple(pos.x, 40);
-      pos.y = round_to_multiple(pos.y, 40);
-    }
+    Vector2 pos = GetCorrectedMousePosition();
 
-    for (int i = 0; i < g->num_points; i++) {
-      Vector2 point = g->points[i];
-      if (CheckCollisionPointCircle(pos, point, 5)) {
-        memmove(&g->points[i], &g->points[i + 1],
-                (g->num_points - i - 1) * sizeof(Vector2));
+    int screen_width  = GetCorrectedScreenWidth();
+    int screen_height = GetCorrectedScreenHeight();
+
+    Vector2 origin = g->origin;
+
+    float dx = pos.x - origin.x;
+    float dy = pos.y - origin.y;
+
+    if (shift_pressed()) {
+      if (dx > 0) {
+        pos.x = round_to_multiple(fabsf(dx), 40) + origin.x;
+      } else {
+        pos.x = origin.x - round_to_multiple(fabsf(dx), 40);
+      }
+
+      if (dy > 0) {
+        pos.y = origin.y + round_to_multiple(fabsf(dy), 40);
+      } else {
+        pos.y = origin.y - round_to_multiple(fabsf(dy), 40);
       }
     }
 
-    if (g->num_points == 25) {
-      memmove(&g->points[1], &g->points[0], 24 * sizeof(Vector2));
+    bool collision = false;
+    for (int i = 0; i < g->num_points; i++) {
+      Vector2 point = g->points[i];
+      if (CheckCollisionPointCircle(pos, point, 5)) {
+        memcpy(&g->points[i], &g->points[i + 1],
+               (g->num_points - i - 1) * sizeof(Vector2));
 
-      g->points[0] = pos;
+        g->num_points -= 1;
+        collision = true;
+      }
+    }
 
-    } else {
-      g->points[g->num_points++] = pos;
+    if (!collision) {
+      if (g->num_points != 25) {
+        g->points[g->num_points++] = pos;
+      } else {
+        memcpy(&g->points[0], &g->points[1], 24 * sizeof(Vector2));
+        g->points[24] = pos;
+      }
     }
   }
 
@@ -181,10 +205,23 @@ void init_simul_2d_keybinds(state* const s) {
 }
 
 void state_update(state* const s) {
+  float screen_width  = GetCorrectedScreenWidth();
+  float screen_height = GetCorrectedScreenHeight();
+
+  grid*   g      = s->scene.scene_data.simul_2d.g;
+  Vector2 origin = g->origin;
+
   switch (s->scene.tag) {
     case SCENE_2D_INTERACTIVE_SIMUL:
-      s->scene.scene_data.simul_2d.g->origin.x = (float)GetScreenWidth() / 2;
-      s->scene.scene_data.simul_2d.g->origin.y = (float)GetScreenHeight() / 2;
+
+      g->origin.x = screen_width / 2;
+      g->origin.y = screen_height / 2;
+
+      for (int i = 0; i < g->num_points; i++) {
+        g->points[i] = translate_xy(g->points[i], g->origin.x - origin.x,
+                                    g->origin.y - origin.y);
+      }
+
       break;
     default:
       break;
